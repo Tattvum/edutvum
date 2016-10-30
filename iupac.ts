@@ -1,4 +1,4 @@
-namespace iupac7 {
+namespace iupac {
   let cname = [
     '',
     'meth',
