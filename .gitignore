@@ -1,0 +1,5 @@
+node_modules
+jsme
+*.js
+*js.map
+npm-debug.log
