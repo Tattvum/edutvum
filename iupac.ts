@@ -147,19 +147,28 @@ namespace iupac {
       return alives[1].corbons().concat(
         alives[0].corbons().reverse().splice(1))
     }
-    public longestPathSize(): number {
-      let cs = this.longestPath()
-      console.log('' + cs)
-      return cs.length
-    }
     public iupac(): string {
       let name = ''
-      let main = this.longestPath()
-      console.log('' + main);
       let branches = {}
       this.paths.filter(p => !p.alive).forEach(p => {
         branches[p.end().id()] = p
       })
+      let nearest = [0, 0]
+      let cs = []
+      this.paths.filter(p => p.alive).forEach((p, i) => {
+        cs[i] = p.corbons()
+        for (var j = 0; j < cs[i].length; j++) {
+          let p = branches[cs[i][j].id()]
+          if (p !== undefined) {
+            nearest[i] = j
+            break
+          }
+        }
+      })
+      let a = 0, b = 1;
+      if (nearest[0] > nearest[1]) { b = 0; a = 1 }
+      let main = cs[a].concat(cs[b].reverse().splice(1))
+      console.log('' + main);
       main.forEach((c, i) => {
         let p = branches[c.id()]
         if (p !== undefined) name += (i + 1) + '-' + p.iupac() + 'yl-'
