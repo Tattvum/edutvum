@@ -63,6 +63,9 @@ namespace iupac {
     public id(): number {
       return this._id
     }
+    public equals(other: Carbon): boolean {
+      return this.id() === other.id()
+    }
     public _shrink1(): Carbon {
       if (this.bonds.length !== 1) return null
       //console.log('removing ' + this.id() + '-' + this.bonds[0].id())
@@ -107,6 +110,12 @@ namespace iupac {
       }
       return false
     }
+    public end(): Carbon {
+      return this.chain.peek()
+    }
+    public iupac(): string {
+      return cname[this.size() - 1]
+    }
     public corbons(): Carbon[] {
       return this.chain.list()
     }
@@ -135,16 +144,29 @@ namespace iupac {
     }
     public longestPath(): Carbon[] {
       let alives = this.paths.filter(path => path.alive)
-      alives.forEach(p => {
-        console.log('' + p)
-      })
-      return alives[0].corbons().concat(
-        alives[1].corbons().reverse().splice(1))
+      return alives[1].corbons().concat(
+        alives[0].corbons().reverse().splice(1))
     }
     public longestPathSize(): number {
       let cs = this.longestPath()
       console.log('' + cs)
       return cs.length
+    }
+    public iupac(): string {
+      let name = ''
+      let main = this.longestPath()
+      console.log('' + main);
+      let branches = {}
+      this.paths.filter(p => !p.alive).forEach(p => {
+        branches[p.end().id()] = p
+      })
+      main.forEach((c, i) => {
+        let p = branches[c.id()]
+        if (p !== undefined) name += (i + 1) + '-' + p.iupac() + 'yl-'
+      })
+      let mainName = cname[main.length] + 'ane'
+      name += mainName
+      return name
     }
     public reveal() {
       this.paths.forEach(path => console.log('' + path))
@@ -169,8 +191,7 @@ namespace iupac {
       let paths = new SemiPaths(Carbon.tips())
       paths.build()
       paths.reveal()
-      let name = cname[paths.longestPathSize()] + 'ane'
-      return name
+      return paths.iupac()
     }
 
     private build(peer: Carbon, past: common.Stack<Carbon>): Carbon {
