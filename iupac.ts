@@ -153,7 +153,7 @@ namespace iupac {
       this.paths.filter(p => !p.alive).forEach(p => {
         branches[p.end().id()] = p
       })
-      let nearest = [0, 0]
+      let nearest = [100, 100]
       let cs = []
       this.paths.filter(p => p.alive).forEach((p, i) => {
         cs[i] = p.corbons()
@@ -165,6 +165,7 @@ namespace iupac {
           }
         }
       })
+      console.log('' + nearest);
       let a = 0, b = 1;
       if (nearest[0] > nearest[1]) { b = 0; a = 1 }
       let main = cs[a].concat(cs[b].reverse().splice(1))
