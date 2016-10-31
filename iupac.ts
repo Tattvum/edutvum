@@ -142,13 +142,25 @@ namespace iupac {
       })
       if (todo) this.build()
     }
-    public longestPath(): Carbon[] {
-      let alives = this.paths.filter(path => path.alive)
-      return alives[1].corbons().concat(
-        alives[0].corbons().reverse().splice(1))
+    private subCore(s: string): string {
+      return s.substr(s.indexOf('-') + 1)
+    }
+    private compare(a, b): number {
+      return (a > b) ? 1 : (a === b) ? 0 : -1
+    }
+    private sortSubstituenets(subs: string[]): string[] {
+      subs = subs.sort((a, b) => {
+        let aa = this.subCore(a)
+        let bb = this.subCore(b)
+        return this.compare(aa, bb)
+      })
+      return subs
+    }
+    private normalizeSubstituenets(subs: string[]): string[] {
+      subs = this.sortSubstituenets(subs)
+      return subs
     }
     public iupac(): string {
-      let name = ''
       let branches = {}
       this.paths.filter(p => !p.alive).forEach(p => {
         branches[p.end().id()] = p
@@ -170,10 +182,14 @@ namespace iupac {
       if (nearest[0] > nearest[1]) { b = 0; a = 1 }
       let main = cs[a].concat(cs[b].reverse().splice(1))
       console.log('' + main);
+      let subs: string[] = []
       main.forEach((c, i) => {
         let p = branches[c.id()]
-        if (p !== undefined) name += (i + 1) + '-' + p.iupac() + 'yl-'
+        if (p !== undefined) subs.push((i + 1) + '-' + p.iupac() + 'yl')
       })
+      subs = this.normalizeSubstituenets(subs)
+      let name = ''
+      name = subs.join('-')
       let mainName = cname[main.length] + 'ane'
       name += mainName
       return name
