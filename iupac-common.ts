@@ -87,19 +87,19 @@ namespace iupac {
     }
 
     public static compareLocants(locs: number[], n: number): number {
-      console.log('FPOD: ' + locs + ' -- (' + n + ')');
+      //console.log('FPOD: ' + locs + ' -- (' + n + ')');
       let comp = 0
       let len = locs.length - 1
-      let locs2 = []
+      //let locs2 = []
       locs.forEach((l, i) => {
         let ll = n - locs[len - i]
-        locs2.push(ll)
+        //locs2.push(ll)
         let newComp = this.compare(l, ll)
-        console.log(l + ' .. ' + ll);
-        console.log(comp + ' -- ' + newComp);
+        //console.log(l + ' .. ' + ll);
+        //console.log(comp + ' -- ' + newComp);
         if (comp === 0) comp = newComp
       })
-      console.log('FPOD: ' + locs2 + ' -- ' + comp);
+      //console.log('FPOD: ' + locs2 + ' -- ' + comp);
       return comp
     }
 

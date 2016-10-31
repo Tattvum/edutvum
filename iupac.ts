@@ -137,8 +137,11 @@ namespace iupac {
         if (branches[c.id()] !== undefined) locs.push(i + 1)
       })
       //console.log('main. ' + main);
-      if (Namer.compareLocants(locs, main.length + 1) >= 0)
-        main = main.reverse()
+      let loccomp = Namer.compareLocants(locs, main.length + 1)
+      if (loccomp > 0) main = main.reverse()
+      else if (loccomp === 0) {
+        console.log('TBD:  loccomp === 0');
+      }
       //console.log('main. ' + main);
       return main
     }
@@ -207,5 +210,5 @@ namespace iupac {
     return m.iupac()
   }
 
-  console.log(main('CC(CCC(CC)C(C)C)C'))
+  console.log(main('CCC(CC(CC)CC)C'))
 }
