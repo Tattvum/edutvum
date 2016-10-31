@@ -1,36 +1,4 @@
 namespace iupac {
-  let noname = [
-    '',
-    '',
-    'di',
-    'tri',
-    'tetra',
-    'penta',
-    'hexa',
-    'hepta',
-    'octa',
-    'nona',
-    'deca',
-  ]
-  let cname = [
-    '',
-    'meth',
-    'eth',
-    'prop',
-    'but',
-    'pent',
-    'hex',
-    'hept',
-    'oct',
-    'non',
-    'dec',
-    'undec',
-    'dodec',
-    'tridec',
-    'tetradec',
-  ];
-
-  //-----------------------------------------------------------------------------
 
   class Carbon {
     private static all: Carbon[] = []
@@ -145,6 +113,7 @@ namespace iupac {
     constructor(tips: Carbon[]) {
       tips.forEach(c => this.paths.push(new SemiPath(c)))
     }
+
     public build() {
       //this.reveal()
       let todo = false
@@ -155,88 +124,40 @@ namespace iupac {
       })
       if (todo) this.build()
     }
-    private subCore(s: string): string {
-      if (s === '' || s === undefined || s === null) return ''
-      return s.substr(s.indexOf('-') + 1)
-    }
-    private subCorePrefix(s: string): string {
-      if (s === '' || s === undefined || s === null) return ''
-      return s.substring(s.indexOf('-'), 0)
-    }
-    private compare(a, b): number {
-      return (a > b) ? 1 : (a === b) ? 0 : -1
-    }
-    private coreCompare(a, b): number {
-      let aa = this.subCore(a)
-      let bb = this.subCore(b)
-      return this.compare(aa, bb)
-    }
-    private coreEquals(a, b): boolean {
-      return this.coreCompare(a, b) === 0
-    }
-    private unify(sames: string[]): string {
-      if (sames === null || sames.length < 1) return ''
-      if (sames.length === 1) return sames[0]
-      let prefix = noname[sames.length]
-      let suffix = this.subCore(sames[0])
+
+    public longestChainInOrder(branches): Carbon[] {
       let locants = []
-      sames.forEach(s => locants.push(this.subCorePrefix(s)))
-      let locant = locants.join(',')
-      console.log('prefix: ' + prefix + ' suffix: ' + suffix + ' locant: ' + locant);
-      return locant + '-' + prefix + suffix
-    }
-    private normalizeSubstituenets(subs: string[]): string[] {
-      subs = subs.sort((a, b) => this.coreCompare(a, b))
-      console.log('[] ' + subs);
-      let newSubs = []
-      let sames = []
-      let prev = null
-      subs.forEach(s => {
-        let eq = this.coreEquals(s, prev)
-        if ((sames.length > 0) && !eq) {
-          newSubs.push(this.unify(sames))
-          sames = []
-        }
-        prev = s
-        sames.push(s)
+      //TBD : ASSUME exactly two paths in filter 
+      let alives = this.paths.filter(p => p.alive)
+      let a0 = alives[0].corbons()
+      let a1 = alives[1].corbons()
+      let main = a0.concat(a1.reverse().splice(1))
+      let locs: number[] = []
+      main.forEach((c, i) => {
+        if (branches[c.id()] !== undefined) locs.push(i + 1)
       })
-      newSubs.push(this.unify(sames))
-      return newSubs
+      //console.log('main. ' + main);
+      if (Namer.compareLocants(locs, main.length + 1) >= 0)
+        main = main.reverse()
+      //console.log('main. ' + main);
+      return main
     }
+
     public iupac(): string {
       let branches = {}
       this.paths.filter(p => !p.alive).forEach(p => {
         branches[p.end().id()] = p
       })
-      let nearest = [100, 100]
-      let cs = []
-      this.paths.filter(p => p.alive).forEach((p, i) => {
-        cs[i] = p.corbons()
-        for (var j = 0; j < cs[i].length; j++) {
-          let p = branches[cs[i][j].id()]
-          if (p !== undefined) {
-            nearest[i] = j
-            break
-          }
-        }
-      })
-      console.log('' + nearest);
-      let a = 0, b = 1;
-      if (nearest[0] > nearest[1]) { b = 0; a = 1 }
-      let main = cs[a].concat(cs[b].reverse().splice(1))
-      console.log('' + main);
+      let main = this.longestChainInOrder(branches)
       let subs: string[] = []
       main.forEach((c, i) => {
         let p = branches[c.id()]
         if (p !== undefined) subs.push((i + 1) + '-' + p.iupac() + 'yl')
       })
-      subs = this.normalizeSubstituenets(subs)
-      let name = ''
-      name = subs.join('-')
-      let mainName = cname[main.length] + 'ane'
-      name += mainName
-      return name
+      subs = Namer.normalizeSubstituenets(subs)
+      return subs.join('-') + cname[main.length] + 'ane'
     }
+
     public reveal() {
       this.paths.forEach(path => console.log('' + path))
       console.log('--------')
@@ -256,10 +177,10 @@ namespace iupac {
       this.build(null, new common.Stack<Carbon>())
       Carbon.fixDegrees()
       //Carbon.reveal()
-      console.log('----iupac----')
+      //console.log('----iupac----')
       let paths = new SemiPaths(Carbon.tips())
       paths.build()
-      paths.reveal()
+      //paths.reveal()
       return paths.iupac()
     }
 
