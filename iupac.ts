@@ -157,7 +157,10 @@ namespace iupac {
       let names = []
       cs.forEach((c, i) => {
         let chains = this.popChains(sides, c.id)
-        chains.forEach(s => names.push((i +  (ane ? 1 : 0)) + '-' + s + ''))
+        chains.forEach(s => {
+          if (s.indexOf('-') >= 0) s = '(' + s + ')'
+          names.push((i + (ane ? 1 : 0)) + '-' + s + '')
+        })
       })
       let name = Namer.normalizeSubstituenets(names).join('-')
       name += Namer.numPrefix(cs.length - (ane ? 0 : 1)) + (ane ? 'ane' : 'yl')

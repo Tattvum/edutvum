@@ -67,11 +67,11 @@ namespace iupac {
     }
     private static subCore(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
-      return s.substr(s.indexOf('-') + 1)
+      return s.substr(s.lastIndexOf('-') + 1)
     }
     private static subCorePrefix(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
-      return s.substring(s.indexOf('-'), 0)
+      return s.substring(s.lastIndexOf('-'), 0)
     }
     //a>b is 1, a=b is 0, a<b is -1
     private static compare(a, b): number {
@@ -100,7 +100,7 @@ namespace iupac {
 
     public static normalizeSubstituenets(subs: string[]): string[] {
       subs = subs.sort((a, b) => this.coreCompare(a, b))
-      //console.log('[' + subs + ']');
+      console.log('[' + subs + ']');
       let newSubs = []
       let sames = []
       let prev = null
