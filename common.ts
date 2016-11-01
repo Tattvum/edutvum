@@ -55,4 +55,38 @@ module common {
     }
   }
 
+  export class TreeNode {
+    private _next: TreeNode = null
+    public branches: TreeNode[] = []
+    constructor(public readonly id: number, __next: TreeNode = null) {
+      this.setNext(__next)
+    }
+    public next(): TreeNode {
+      return this._next
+    }
+    public setNext(__next: TreeNode) {
+      this._next = __next
+    }
+    public end(): TreeNode {
+      if (this._next === null) return this
+      return this._next.end()
+    }
+    public printBranches(): string {
+      if (this.branches.length === 0) return ''
+      let txt = '['
+      this.branches.forEach(b => txt += '(' + b.print() + ')')
+      txt += ']'
+      return txt
+    }
+    public print(alsoBranches = true): string {
+      let txt = this.toString()
+      if (alsoBranches) txt += this.printBranches()
+      if (this._next === null) return txt
+      return txt + ',' + this._next.print()
+    }
+    public toString(): string {
+      return '' + this.id
+    }
+  }
+
 }

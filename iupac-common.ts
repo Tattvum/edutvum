@@ -1,4 +1,29 @@
 namespace iupac {
+  let name1 = [
+    '^',
+    'meth',
+    'eth',
+    'prop',
+    'but',
+    'pent',
+    'hex',
+    'hept',
+    'oct',
+    'non',
+  ]
+  let name2 = [
+    '^',
+    'un',
+    'do',
+    'tri',
+    'tetra',
+    'pent',
+    'hex',
+    'hept',
+    'oct',
+    'non',
+  ]
+
   export let noname = [
     '',
     '',
@@ -13,27 +38,33 @@ namespace iupac {
     'deca',
   ]
 
-  export let cname = [
-    '',
-    'meth',
-    'eth',
-    'prop',
-    'but',
-    'pent',
-    'hex',
-    'hept',
-    'oct',
-    'non',
-    'dec',
-    'undec',
-    'dodec',
-    'tridec',
-    'tetradec',
-  ]
 
   //-----------------------------------------------------------------------------
 
   export class Namer {
+    public static numPrefix(n: number): string {
+      //console.log('numPrefix: ' + n);
+      if (n < 10) return name1[n]
+      if (n === 10) return 'dec'
+      if (n > 10 && n < 100) {
+        let t = Math.floor(n / 10)
+        //console.log('t: ' + t);
+        let o = n % 10
+        //console.log('o: ' + o);
+        let tens = name2[t]
+        let ones = name2[o]
+        let suffix = 'acont'
+        if (t === 1) suffix = 'dec'
+        if (t === 1) tens = ''
+        if (t === 2) suffix = 'icos'
+        if (t > 1 && o == 1) tens = 'hen'
+        //console.log('ones: ' + ones);
+        //console.log('tens: ' + tens);
+        //console.log('suffix: ' + suffix);
+        return ones + tens + suffix
+      }
+      return n + 'x'
+    }
     private static subCore(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
       return s.substr(s.indexOf('-') + 1)

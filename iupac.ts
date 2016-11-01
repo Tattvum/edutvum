@@ -9,7 +9,7 @@ namespace iupac {
     static reveal() {
       console.log('Carbons: [' + Carbon.all.join(',') + ']')
       Carbon.all.forEach(c => {
-        console.log(c._id + ' - ' + c.bonds.length)
+        console.log(c.id + ' - ' + c.bonds.length)
       })
       console.log(',,,,,,,,,,,')
     }
@@ -22,7 +22,7 @@ namespace iupac {
       return total
     }
 
-    private _id: number
+    readonly id: number
     private bonds: Carbon[] = []
 
     private fixedDeg: number = 0
@@ -34,18 +34,15 @@ namespace iupac {
     }
 
     constructor(peer: Carbon) {
-      this._id = Carbon.all.length
+      this.id = Carbon.all.length
       Carbon.all.push(this)
       if (peer !== null) {
         peer.bonds.push(this)
         this.bonds.push(peer)
       }
     }
-    public id(): number {
-      return this._id
-    }
     public equals(other: Carbon): boolean {
-      return this.id() === other.id()
+      return this.id === other.id
     }
     public _shrink1(): Carbon {
       if (this.bonds.length !== 1) return null
@@ -58,7 +55,7 @@ namespace iupac {
       return this.bonds.length
     }
     public toString(): string {
-      return '' + this._id
+      return '' + this.id
     }
   }
 
@@ -95,9 +92,9 @@ namespace iupac {
       return this.chain.peek()
     }
     public iupac(): string {
-      return cname[this.size() - 1]
+      return Namer.numPrefix(this.size() - 1)
     }
-    public corbons(): Carbon[] {
+    public carbons(): Carbon[] {
       return this.chain.list()
     }
     public toString(): string {
@@ -107,6 +104,8 @@ namespace iupac {
   }
 
   //-----------------------------------------------------------------------------
+
+  type SideChains = { [id: number]: string[] }
 
   class SemiPaths {
     private paths: SemiPath[] = []
@@ -125,16 +124,16 @@ namespace iupac {
       if (todo) this.build()
     }
 
-    public longestChainInOrder(branches): Carbon[] {
+    private longestChainInOrder(sides: SideChains): Carbon[] {
       let locants = []
       //TBD : ASSUME exactly two paths in filter 
       let alives = this.paths.filter(p => p.alive)
-      let a0 = alives[0].corbons()
-      let a1 = alives[1].corbons()
+      let a0 = alives[0].carbons()
+      let a1 = alives[1].carbons()
       let main = a0.concat(a1.reverse().splice(1))
       let locs: number[] = []
       main.forEach((c, i) => {
-        if (branches[c.id()] !== undefined) locs.push(i + 1)
+        if (sides[c.id] !== undefined) locs.push(i + 1)
       })
       //console.log('main. ' + main);
       let loccomp = Namer.compareLocants(locs, main.length + 1)
@@ -146,19 +145,45 @@ namespace iupac {
       return main
     }
 
+    private popChains(sides: SideChains, cid: number): string[] {
+      let chains = sides[cid]
+      sides[cid] = undefined
+      if (chains === undefined) chains = []
+      return chains
+    }
+
+    private buildSideChain(sides: SideChains, cs: Carbon[], id: number, ane: boolean = false) {
+      console.log('buildSideChain: ' + sides + ' ' + cs + ' ' + id);
+      let names = []
+      cs.forEach((c, i) => {
+        let chains = this.popChains(sides, c.id)
+        chains.forEach(s => names.push((i +  (ane ? 1 : 0)) + '-' + s + ''))
+      })
+      let name = Namer.normalizeSubstituenets(names).join('-')
+      name += Namer.numPrefix(cs.length - (ane ? 0 : 1)) + (ane ? 'ane' : 'yl')
+      if (sides[id] === undefined) sides[id] = []
+      sides[id].push(name)
+    }
+
+    private buildSideChains(sides: SideChains) {
+      let nas = this.paths.filter(p => !p.alive)
+      let snas = nas.sort((a, b) => a.compare(b))
+      snas.forEach(p => {
+        console.log('snas: ' + p);
+        this.buildSideChain(sides,
+          p.carbons().reverse(), p.end().id)
+      })
+    }
+
     public iupac(): string {
-      let branches = {}
-      this.paths.filter(p => !p.alive).forEach(p => {
-        branches[p.end().id()] = p
-      })
-      let main = this.longestChainInOrder(branches)
-      let subs: string[] = []
-      main.forEach((c, i) => {
-        let p = branches[c.id()]
-        if (p !== undefined) subs.push((i + 1) + '-' + p.iupac() + 'yl')
-      })
-      subs = Namer.normalizeSubstituenets(subs)
-      return subs.join('-') + cname[main.length] + 'ane'
+      let sides: { [id: number]: string[] } = {}
+      this.buildSideChains(sides)
+      console.log(JSON.stringify(sides));
+      let main = this.longestChainInOrder(sides)
+      console.log('' + main)
+      this.buildSideChain(sides, main, 0, true)
+      console.log('' + sides[0])
+      return sides[0][0]
     }
 
     public reveal() {
@@ -207,8 +232,26 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
+    /*
+      console.log('[Tree-------')
+      let tn4 = new common.TreeNode(4)
+      let tn3 = new common.TreeNode(3, tn4)
+      let tn2 = new common.TreeNode(2, tn3)
+      let tn1 = new common.TreeNode(1, tn2)
+      //
+      let tn5 = new common.TreeNode(5)
+      tn2.branches.push(tn5)
+      //
+      let tn7 = new common.TreeNode(7)
+      let tn6 = new common.TreeNode(6, tn7)
+      tn2.branches.push(tn6)
+      //
+      console.log('< ' + tn1.print() + ' >');
+      console.log('end of 1 = ' + tn1.end());
+      console.log('........Tree]')
+    */
     return m.iupac()
   }
 
-  console.log(main('CCC(CC(CC)CC)C'))
+  console.log(main('C(CCCCCC(C(C(CC)C)C)C(C)CCCCCCCC)CCC'))
 }
