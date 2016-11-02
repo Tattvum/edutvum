@@ -24,6 +24,17 @@ namespace iupac {
     'non',
   ]
 
+  export let retained = {
+    '1-methylethyl': 'isopropyl',
+    '1-methylpropyl': 'sec_butyl',
+    '2-methylpropyl': 'isobutyl',
+    '1,1-dimethylethyl': 'tert_butyl',
+    '3-methylbutyl': 'isopentyl',
+    '1,1-dimethylpropyl': 'tert_pentyl',
+    '2,2-dimethylpropyl': 'neopentyl',
+    '4-methylpentyl': 'isohexyl',
+  }
+
   export let noname = [
     '',
     '',
@@ -42,6 +53,12 @@ namespace iupac {
   //-----------------------------------------------------------------------------
 
   export class Namer {
+    public static synonym(name: string): string {
+      let syn = retained[name]
+      if(syn === undefined) return name
+      console.log('synonym: '+name+' -> '+syn)
+      return syn
+    }
     public static numPrefix(n: number): string {
       //console.log('numPrefix: ' + n);
       if (n < 10) return name1[n]

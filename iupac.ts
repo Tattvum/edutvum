@@ -159,13 +159,13 @@ namespace iupac {
         let chains = this.popChains(sides, c.id)
         chains.forEach(s => {
           if (s.indexOf('-') >= 0) s = '(' + s + ')'
-          names.push((i + 1) + '-' + s + '')
+          names.push((i + 1) + '-' + s)
         })
       })
       let name = Namer.normalizeSubstituenets(names).join('-')
       name += Namer.numPrefix(cs.length) + (ane ? 'ane' : 'yl')
       if (sides[id] === undefined) sides[id] = []
-      sides[id].push(name)
+      sides[id].push(Namer.synonym(name))
       console.log(JSON.stringify(sides));
     }
 
