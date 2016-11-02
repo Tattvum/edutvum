@@ -3,3 +3,7 @@ jsme
 *.js
 *js.map
 npm-debug.log
+public
+.firebaserc
+database.rules.json
+firebase.json
