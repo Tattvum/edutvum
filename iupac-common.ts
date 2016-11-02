@@ -100,7 +100,7 @@ namespace iupac {
 
     public static normalizeSubstituenets(subs: string[]): string[] {
       subs = subs.sort((a, b) => this.coreCompare(a, b))
-      console.log('[' + subs + ']');
+      //console.log('[' + subs + ']');
       let newSubs = []
       let sames = []
       let prev = null

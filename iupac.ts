@@ -153,19 +153,20 @@ namespace iupac {
     }
 
     private buildSideChain(sides: SideChains, cs: Carbon[], id: number, ane: boolean = false) {
-      console.log('buildSideChain: ' + sides + ' ' + cs + ' ' + id);
+      //console.log('buildSideChain');
       let names = []
       cs.forEach((c, i) => {
         let chains = this.popChains(sides, c.id)
         chains.forEach(s => {
           if (s.indexOf('-') >= 0) s = '(' + s + ')'
-          names.push((i + (ane ? 1 : 0)) + '-' + s + '')
+          names.push((i + 1) + '-' + s + '')
         })
       })
       let name = Namer.normalizeSubstituenets(names).join('-')
-      name += Namer.numPrefix(cs.length - (ane ? 0 : 1)) + (ane ? 'ane' : 'yl')
+      name += Namer.numPrefix(cs.length) + (ane ? 'ane' : 'yl')
       if (sides[id] === undefined) sides[id] = []
       sides[id].push(name)
+      console.log(JSON.stringify(sides));
     }
 
     private buildSideChains(sides: SideChains) {
@@ -174,18 +175,16 @@ namespace iupac {
       snas.forEach(p => {
         console.log('snas: ' + p);
         this.buildSideChain(sides,
-          p.carbons().reverse(), p.end().id)
+          p.carbons().reverse().splice(1), p.end().id)
       })
     }
 
     public iupac(): string {
       let sides: { [id: number]: string[] } = {}
       this.buildSideChains(sides)
-      console.log(JSON.stringify(sides));
       let main = this.longestChainInOrder(sides)
       console.log('' + main)
       this.buildSideChain(sides, main, 0, true)
-      console.log('' + sides[0])
       return sides[0][0]
     }
 
