@@ -234,24 +234,6 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
-    /*
-      console.log('[Tree-------')
-      let tn4 = new common.TreeNode(4)
-      let tn3 = new common.TreeNode(3, tn4)
-      let tn2 = new common.TreeNode(2, tn3)
-      let tn1 = new common.TreeNode(1, tn2)
-      //
-      let tn5 = new common.TreeNode(5)
-      tn2.branches.push(tn5)
-      //
-      let tn7 = new common.TreeNode(7)
-      let tn6 = new common.TreeNode(6, tn7)
-      tn2.branches.push(tn6)
-      //
-      console.log('< ' + tn1.print() + ' >');
-      console.log('end of 1 = ' + tn1.end());
-      console.log('........Tree]')
-    */
     return m.iupac()
   }
 
