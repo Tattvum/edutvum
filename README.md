@@ -2,10 +2,12 @@
 
 ## Overview 
 
-This sample shows a raytracer implementation in TypeScript.
+Prerequisites:
+Have JSME as a sub folder
+http://peter-ertl.com/jsme/
 
 ## Running
 ```
 tsc 
-start raytracer.html
+npm start
 ```
