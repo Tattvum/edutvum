@@ -158,7 +158,7 @@ namespace iupac {
       cs.forEach((c, i) => {
         let chains = this.popChains(sides, c.id)
         chains.forEach(s => {
-          if (s.indexOf('-') >= 0) s = '(' + s + ')'
+          if (s.search('[0-9]') >= 0) s = '(' + s + ')'
           names.push((i + 1) + '-' + s)
         })
       })

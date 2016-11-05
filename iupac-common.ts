@@ -24,18 +24,18 @@ namespace iupac {
     'non',
   ]
 
-  export let retained = {
+  let retained = {
     '1-methylethyl': 'isopropyl',
-    '1-methylpropyl': 'sec_butyl',
+    '1-methylpropyl': 'sec-butyl',
     '2-methylpropyl': 'isobutyl',
-    '1,1-dimethylethyl': 'tert_butyl',
+    '1,1-dimethylethyl': 'tert-butyl',
     '3-methylbutyl': 'isopentyl',
-    '1,1-dimethylpropyl': 'tert_pentyl',
+    '1,1-dimethylpropyl': 'tert-pentyl',
     '2,2-dimethylpropyl': 'neopentyl',
     '4-methylpentyl': 'isohexyl',
   }
 
-  export let noname = [
+  let noname = [
     '',
     '',
     'di',
