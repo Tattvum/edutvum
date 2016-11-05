@@ -92,7 +92,7 @@ namespace iupac {
       return this.chain.peek()
     }
     public iupac(): string {
-      return Namer.numPrefix(this.size() - 1)
+      return Namer.numix(this.size() - 1)
     }
     public carbons(): Carbon[] {
       return this.chain.list()
@@ -163,7 +163,7 @@ namespace iupac {
         })
       })
       let name = Namer.normalizeSubstituenets(names).join('-')
-      name += Namer.numPrefix(cs.length) + (ane ? 'ane' : 'yl')
+      name += Namer.numix(cs.length) + (ane ? 'ane' : 'yl')
       if (sides[id] === undefined) sides[id] = []
       sides[id].push(Namer.synonym(name))
       console.log(JSON.stringify(sides));
@@ -234,8 +234,11 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
+    //for (var i = 0; i < 1000; i++) {
+    //  console.log(i,Namer.numix2(i)+'.ane');
+    //}
     return m.iupac()
   }
 
-  console.log(main('C(CCCCCC(C(C(CC)C)C)C(C)CCCCCCCC)CCC'))
+  console.log(main('C(CCC(C(CCCC)C(CC)C)C(C)CC)C'))
 }

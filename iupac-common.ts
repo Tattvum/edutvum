@@ -1,5 +1,5 @@
 namespace iupac {
-  let name1 = [
+  let units = [
     '^',
     'meth',
     'eth',
@@ -11,17 +11,18 @@ namespace iupac {
     'oct',
     'non',
   ]
-  let name2 = [
-    '^',
-    'un',
+
+  let prefix = [
+    '',
+    'hen',
     'do',
     'tri',
     'tetra',
-    'pent',
-    'hex',
-    'hept',
-    'oct',
-    'non',
+    'penta',
+    'hexa',
+    'hepta',
+    'octa',
+    'nona',
   ]
 
   let retained = {
@@ -49,46 +50,70 @@ namespace iupac {
     'deca',
   ]
 
+  let noname2 = [
+    '',
+    '',
+    'bis',
+    'tris',
+    'tetrakis',
+    'pentakis',
+    'hexakis',
+    'heptakis',
+    'octakis',
+    'nonakis',
+    'decakis',
+  ]
 
   //-----------------------------------------------------------------------------
 
   export class Namer {
     public static synonym(name: string): string {
       let syn = retained[name]
-      if(syn === undefined) return name
-      console.log('synonym: '+name+' -> '+syn)
+      if (syn === undefined) return name
+      console.log('synonym: ' + name + ' -> ' + syn)
       return syn
     }
-    public static numPrefix(n: number): string {
-      //console.log('numPrefix: ' + n);
-      if (n < 10) return name1[n]
+
+    public static numix(n: number): string {
+      var selfn = this.numix
+      let oo = n % 10
+      let t = Math.floor(n / 10)
+      let tt = n % 100
+      let h = Math.floor(t / 10)
+      let hh = n % 1000
+      let th = Math.floor(h / 10)
+
+      if (n <= 0) return ''
+      if (n < 10) return units[oo]
       if (n === 10) return 'dec'
-      if (n > 10 && n < 100) {
-        let t = Math.floor(n / 10)
-        //console.log('t: ' + t);
-        let o = n % 10
-        //console.log('o: ' + o);
-        let tens = name2[t]
-        let ones = name2[o]
-        let suffix = 'acont'
-        if (t === 1) suffix = 'dec'
-        if (t === 1) tens = ''
-        if (t === 2) suffix = 'icos'
-        if (t > 1 && o == 1) tens = 'hen'
-        //console.log('ones: ' + ones);
-        //console.log('tens: ' + tens);
-        //console.log('suffix: ' + suffix);
-        return ones + tens + suffix
-      }
-      return n + 'x'
+      if (n === 11) return 'undec'
+      if (n < 20) return prefix[oo] + 'dec'
+      if (n === 20) return 'icos'
+      if (n === 21) return 'henicos'
+      if (n < 30) return prefix[oo] + 'cos'
+      if (n < 100) return prefix[oo] + prefix[t] + 'cont'
+      if (n === 100) return 'hect'
+      if (n < 200) return selfn(tt) + 'a' + 'hect'
+      if (n === 200) return 'dict'
+      if (n < 300) return selfn(tt) + 'a' + 'dict'
+      if (n < 1000) return selfn(tt) + 'a' + prefix[h] + 'ct'
+      if (n === 1000) return 'kili'
+      if (n < 2000) return selfn(hh) + 'a' + 'kili'
+      if (n === 2000) return 'dili'
+      if (n < 3000) return selfn(hh) + 'a' + 'dili'
+      if (n < 10000) return selfn(hh) + 'a' + prefix[th] + 'li'
+      return '' + n
     }
+
     private static subCore(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
-      return s.substr(s.lastIndexOf('-') + 1)
+      //This accounts for sec- and tert- too! 
+      //As well as the locant numbers like 2- or 2,3-
+      return s.substr(s.indexOf('-') + 1)
     }
     private static subCorePrefix(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
-      return s.substring(s.lastIndexOf('-'), 0)
+      return s.substring(s.indexOf('-'), 0)
     }
     //a>b is 1, a=b is 0, a<b is -1
     private static compare(a, b): number {
@@ -106,13 +131,14 @@ namespace iupac {
     private static unify(sames: string[]): string {
       if (sames === null || sames.length < 1) return ''
       if (sames.length === 1) return sames[0]
-      let prefix = noname[sames.length]
-      let suffix = this.subCore(sames[0])
+      let numul = noname[sames.length]
+      if (sames[0].indexOf('(') >= 0) numul = noname2[sames.length]
+      let base = this.subCore(sames[0])
       let locants = []
       sames.forEach(s => locants.push(this.subCorePrefix(s)))
       let locant = locants.join(',')
       //console.log('prefix: ' + prefix + ' suffix: ' + suffix + ' locant: ' + locant);
-      return locant + '-' + prefix + suffix
+      return locant + '-' + numul + base
     }
 
     public static normalizeSubstituenets(subs: string[]): string[] {
