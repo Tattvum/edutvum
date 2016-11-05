@@ -234,9 +234,6 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
-    //for (var i = 0; i < 1000; i++) {
-    //  console.log(i,Namer.numix2(i)+'.ane');
-    //}
     return m.iupac()
   }
 
