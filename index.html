@@ -2,24 +2,27 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="styles.css">
-	<title>Edutvum : SMILES-IUPAC</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <title>Edutvum : SMILES-IUPAC</title>
 </head>
 
 <body>
 
-	<p>
-		<h1 id='main'></h1>
-	</p>
-	<div id="jsme_container"></div>
-	<BR> smiles: <b><span  id="smiles_container" ></span></b>
-	<BR> iupac: <b><span  id="iupac" ></span></b>
+  <p>
+    <h1 id='main'></h1>
+  </p>
+  <div id="jsme_container"></div>
+  <br> smiles: <b><span  id="smiles_container" ></span></b>
+  <br> 
+  <input onclick="toggle()" type="button" id="disp" value="Show"></input>
+  <br> 
+  iupac: <b><span  id="iupac" ></span></b>
 
-	<script src="jsme/jsme.nocache.js"></script>
-	<script>
+  <script src="jsme/jsme.nocache.js"></script>
+  <script>
     //this function will be called after the JavaScriptApplet code has been loaded.
     function jsmeOnLoad() {
       jsmeApplet = new JSApplet.JSME("jsme_container", "380px", "340px", {
@@ -27,16 +30,30 @@
       });
       jsmeApplet.setNotifyStructuralChangeJSfunction("show_smiles");
     }
+    var shown = true
+    function toggle() {
+      var spn = document.getElementById("iupac")
+      var btn = document.getElementById("disp")
+      if(shown) {
+        spn.style.visibility = "hidden"
+        btn.value = "Show"
+      } else {
+        spn.style.visibility = "visible"
+        btn.value = "Hide"
+      }
+      shown = !shown
+    }
     function show_smiles() {
       smiles = jsmeApplet.smiles(); //atom that are colored are numbered
       document.getElementById("smiles_container").innerHTML = smiles
-      document.getElementById("iupac").innerHTML = iupac.main(smiles)
+      var spn = document.getElementById("iupac")
+      spn.innerHTML = iupac.main(smiles)
     }
   </script>
 
-	<script src="common.js"></script>
-	<script src="iupac-common.js"></script>
-	<script src="iupac.js"></script>
+  <script src="common.js"></script>
+  <script src="iupac-common.js"></script>
+  <script src="iupac.js"></script>
 </body>
 
 </html>
