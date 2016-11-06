@@ -124,17 +124,25 @@ namespace iupac {
       if (todo) this.build()
     }
 
-    private longestChainInOrder(sides: SideChains): Carbon[] {
-      let locants = []
+    private mainAlive(sides: SideChains): Carbon[] {
       //TBD : ASSUME exactly two paths in filter 
       let alives = this.paths.filter(p => p.alive)
       let a0 = alives[0].carbons()
       let a1 = alives[1].carbons()
-      let main = a0.concat(a1.reverse().splice(1))
+      return a0.concat(a1.reverse().splice(1))
+    }
+
+    private locants(sides: SideChains, main: Carbon[]): number[] {
       let locs: number[] = []
       main.forEach((c, i) => {
         if (sides[c.id] !== undefined) locs.push(i + 1)
       })
+      return locs
+    }
+
+    private longestChainInOrder(sides: SideChains): Carbon[] {
+      let main = this.mainAlive(sides)
+      let locs = this.locants(sides, main)
       //console.log('main. ' + main);
       let loccomp = Namer.compareLocants(locs, main.length + 1)
       if (loccomp > 0) main = main.reverse()
@@ -152,18 +160,20 @@ namespace iupac {
       return chains
     }
 
-    private buildSideChain(sides: SideChains, cs: Carbon[], id: number, ane: boolean = false) {
+    private buildLink(names: Array<string>, sides: SideChains, id: number, i: number) {
+      let chains = this.popChains(sides, id)
+      chains.forEach(s => {
+        if (s.search('[0-9]') >= 0) s = '(' + s + ')'
+        names.push((i + 1) + '-' + s)
+      })
+    }
+
+    private buildSideChain(sides: SideChains, cs: Carbon[], id: number, suffix: string = 'yl') {
       //console.log('buildSideChain');
       let names = []
-      cs.forEach((c, i) => {
-        let chains = this.popChains(sides, c.id)
-        chains.forEach(s => {
-          if (s.search('[0-9]') >= 0) s = '(' + s + ')'
-          names.push((i + 1) + '-' + s)
-        })
-      })
+      cs.forEach((c, i) => this.buildLink(names, sides, c.id, i))
       let name = Namer.normalizeSubstituenets(names).join('-')
-      name += Namer.numix(cs.length) + (ane ? 'ane' : 'yl')
+      name += Namer.numix(cs.length) + suffix
       if (sides[id] === undefined) sides[id] = []
       sides[id].push(Namer.synonym(name))
       console.log(JSON.stringify(sides));
@@ -184,7 +194,7 @@ namespace iupac {
       this.buildSideChains(sides)
       let main = this.longestChainInOrder(sides)
       console.log('' + main)
-      this.buildSideChain(sides, main, 0, true)
+      this.buildSideChain(sides, main, 0, 'ane')
       return sides[0][0]
     }
 
@@ -237,5 +247,5 @@ namespace iupac {
     return m.iupac()
   }
 
-  console.log(main('C(CCC(C(CCCC)C(CC)C)C(C)CC)C'))
+  console.log(main('CCC(CC(CC)CC)C'))
 }

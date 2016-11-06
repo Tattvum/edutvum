@@ -158,7 +158,7 @@ namespace iupac {
         sames.push(s)
       })
       newSubs.push(this.unify(sames))
-      subs = subs.sort((a, b) => this.coreCompare(a, b))
+      console.log('norm: '+subs)
       return newSubs
     }
 
