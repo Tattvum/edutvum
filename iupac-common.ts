@@ -107,8 +107,6 @@ namespace iupac {
 
     private static subCore(s: string): string {
       if (s === '' || s === undefined || s === null) return ''
-      //This accounts for sec- and tert- too! 
-      //As well as the locant numbers like 2- or 2,3-
       return s.substr(s.indexOf('-') + 1)
     }
     private static subCorePrefix(s: string): string {
@@ -120,8 +118,11 @@ namespace iupac {
       return (a > b) ? 1 : (a === b) ? 0 : -1
     }
     private static coreCompare(a, b): number {
-      let aa = this.subCore(a)
-      let bb = this.subCore(b)
+      //console.log('comp 1: ', a, b)
+      //second subcore call is to catch sec- and tert-
+      let aa = this.subCore(this.subCore(a))
+      let bb = this.subCore(this.subCore(b))
+      //console.log('comp 2: ', aa, bb)
       return this.compare(aa, bb)
     }
     private static coreEquals(a, b): boolean {
@@ -157,6 +158,7 @@ namespace iupac {
         sames.push(s)
       })
       newSubs.push(this.unify(sames))
+      subs = subs.sort((a, b) => this.coreCompare(a, b))
       return newSubs
     }
 
