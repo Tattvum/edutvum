@@ -75,15 +75,10 @@ namespace iupac {
     }
 
     public static numix(n: number): string {
-      var selfn = this.numix
-      let oo = n % 10
-      let t = Math.floor(n / 10)
-      let tt = n % 100
-      let h = Math.floor(t / 10)
-      let hh = n % 1000
-      let th = Math.floor(h / 10)
-
+      let selfn = this.numix
       if (n <= 0) return ''
+
+      let oo = n % 10
       if (n < 10) return units[oo]
       if (n === 10) return 'dec'
       if (n === 11) return 'undec'
@@ -91,16 +86,26 @@ namespace iupac {
       if (n === 20) return 'icos'
       if (n === 21) return 'henicos'
       if (n < 30) return prefix[oo] + 'cos'
+
+      let t = Math.floor(n / 10)
       if (n < 100) return prefix[oo] + prefix[t] + 'cont'
       if (n === 100) return 'hect'
+
+      let tt = n % 100
       if (n < 200) return selfn(tt) + 'a' + 'hect'
       if (n === 200) return 'dict'
       if (n < 300) return selfn(tt) + 'a' + 'dict'
+
+      let h = Math.floor(t / 10)
       if (n < 1000) return selfn(tt) + 'a' + prefix[h] + 'ct'
       if (n === 1000) return 'kili'
+
+      let hh = n % 1000
       if (n < 2000) return selfn(hh) + 'a' + 'kili'
       if (n === 2000) return 'dili'
       if (n < 3000) return selfn(hh) + 'a' + 'dili'
+
+      let th = Math.floor(h / 10)
       if (n < 10000) return selfn(hh) + 'a' + prefix[th] + 'li'
       return '' + n
     }
@@ -114,7 +119,7 @@ namespace iupac {
       return s.substring(s.indexOf('-'), 0)
     }
     //a>b is 1, a=b is 0, a<b is -1
-    private static compare(a, b): number {
+    public static compare(a, b): number {
       return (a > b) ? 1 : (a === b) ? 0 : -1
     }
     private static coreCompare(a, b): number {
@@ -142,8 +147,12 @@ namespace iupac {
       return locant + '-' + numul + base
     }
 
-    public static normalizeSubstituenets(subs: string[]): string[] {
-      subs = subs.sort((a, b) => this.coreCompare(a, b))
+    public static sort(subs: string[]): string[] {
+      return subs.sort((a, b) => this.coreCompare(a, b))
+    }
+
+    public static normalize(subs: string[]): string[] {
+      subs = Namer.sort(subs)
       //console.log('[' + subs + ']');
       let newSubs = []
       let sames = []

@@ -106,11 +106,17 @@ namespace iupac {
   //-----------------------------------------------------------------------------
 
   type SideChains = { [id: number]: string[] }
+  type ChainLink = [number, string]
 
   class SemiPaths {
     private paths: SemiPath[] = []
     constructor(tips: Carbon[]) {
       tips.forEach(c => this.paths.push(new SemiPath(c)))
+    }
+
+    public reveal() {
+      this.paths.forEach(path => console.log('' + path))
+      console.log('--------')
     }
 
     public build() {
@@ -123,6 +129,68 @@ namespace iupac {
       })
       if (todo) this.build()
     }
+
+    private addSideChain(sides: SideChains, id: number, name: string) {
+      if (sides[id] === undefined) sides[id] = []
+      sides[id].push(Namer.synonym(name))
+      console.log(JSON.stringify(sides));
+    }
+
+    //-----------------------------------------------------------------------------
+
+    private popChains(sides: SideChains, cid: number): string[] {
+      let chains = sides[cid]
+      sides[cid] = undefined
+      if (chains === undefined) chains = []
+      return chains
+    }
+
+    private linksPlain(sides: SideChains, cs: Carbon[]): any[] {
+      let links = []
+      cs.forEach((c, i) => {
+        let chains = this.popChains(sides, c.id)
+        chains.forEach(s => {
+          if (s.search('[0-9]') >= 0) s = '(' + s + ')'
+          links.push([i + 1, s])
+        })
+      })
+      return links
+    }
+
+    private joinLinks(links: any[]): string[] {
+      let names: Array<string> = []
+      links.forEach(lnk => names.push(lnk[0] + '-' + lnk[1]))
+      return names
+    }
+
+    private links(sides: SideChains, cs: Carbon[]): string[] {
+      return this.joinLinks(this.linksPlain(sides, cs))
+    }
+
+    private makeName(names, len: number, suffix: string): string {
+      let name = Namer.normalize(names).join('-')
+      name += Namer.numix(len) + suffix
+      return name
+    }
+
+    private buildSideChain(sides: SideChains, cs: Carbon[], id: number) {
+      //console.log('buildSideChain');
+      let names = this.links(sides, cs)
+      let name = this.makeName(names, cs.length, 'yl')
+      this.addSideChain(sides, id, name)
+    }
+
+    private buildSideChains(sides: SideChains) {
+      let nas = this.paths.filter(p => !p.alive)
+      let snas = nas.sort((a, b) => a.compare(b))
+      snas.forEach(p => {
+        console.log('snas: ' + p);
+        let cs = p.carbons().reverse().splice(1)
+        this.buildSideChain(sides, cs, p.end().id)
+      })
+    }
+
+    //-----------------------------------------------------------------------------
 
     private mainAlive(sides: SideChains): Carbon[] {
       //TBD : ASSUME exactly two paths in filter 
@@ -140,67 +208,42 @@ namespace iupac {
       return locs
     }
 
-    private longestChainInOrder(sides: SideChains): Carbon[] {
-      let main = this.mainAlive(sides)
+    public checkReverseLocants(links: ChainLink[]) {
+      links = links.sort((a, b) => Namer.compare(a[0], b[0]))
+      //console.log('1- ' + links);
+      let len = Math.floor(links.length / 2)
+      for (let i = 0; i < len; i++) {
+        let oend = links.length - i - 1
+        if (links[i][1] > links[oend][1]) {
+          let temp = links[i][0]
+          links[i][0] = links[oend][0]
+          links[oend][0] = temp
+        }
+      }
+    }
+
+    private mainChain(sides: SideChains, main: Carbon[]) {
       let locs = this.locants(sides, main)
       //console.log('main. ' + main);
+      let links = null
       let loccomp = Namer.compareLocants(locs, main.length + 1)
       if (loccomp > 0) main = main.reverse()
       else if (loccomp === 0) {
-        console.log('TBD:  loccomp === 0');
+        console.log('TBD  iupac2:  loccomp === 0');
+        links = this.linksPlain(sides, main)
+        this.checkReverseLocants(links)
       }
-      //console.log('main. ' + main);
-      return main
-    }
-
-    private popChains(sides: SideChains, cid: number): string[] {
-      let chains = sides[cid]
-      sides[cid] = undefined
-      if (chains === undefined) chains = []
-      return chains
-    }
-
-    private buildLink(names: Array<string>, sides: SideChains, id: number, i: number) {
-      let chains = this.popChains(sides, id)
-      chains.forEach(s => {
-        if (s.search('[0-9]') >= 0) s = '(' + s + ')'
-        names.push((i + 1) + '-' + s)
-      })
-    }
-
-    private buildSideChain(sides: SideChains, cs: Carbon[], id: number, suffix: string = 'yl') {
-      //console.log('buildSideChain');
-      let names = []
-      cs.forEach((c, i) => this.buildLink(names, sides, c.id, i))
-      let name = Namer.normalizeSubstituenets(names).join('-')
-      name += Namer.numix(cs.length) + suffix
-      if (sides[id] === undefined) sides[id] = []
-      sides[id].push(Namer.synonym(name))
-      console.log(JSON.stringify(sides));
-    }
-
-    private buildSideChains(sides: SideChains) {
-      let nas = this.paths.filter(p => !p.alive)
-      let snas = nas.sort((a, b) => a.compare(b))
-      snas.forEach(p => {
-        console.log('snas: ' + p);
-        this.buildSideChain(sides,
-          p.carbons().reverse().splice(1), p.end().id)
-      })
+      if (links === null) links = this.linksPlain(sides, main)
+      return links
     }
 
     public iupac(): string {
       let sides: { [id: number]: string[] } = {}
       this.buildSideChains(sides)
-      let main = this.longestChainInOrder(sides)
-      console.log('' + main)
-      this.buildSideChain(sides, main, 0, 'ane')
-      return sides[0][0]
-    }
 
-    public reveal() {
-      this.paths.forEach(path => console.log('' + path))
-      console.log('--------')
+      let main = this.mainAlive(sides)
+      let names = this.joinLinks(this.mainChain(sides, main))
+      return this.makeName(names, main.length, 'ane')
     }
   }
 
@@ -225,7 +268,7 @@ namespace iupac {
     }
 
     private build(peer: Carbon, past: common.Stack<Carbon>): Carbon {
-      var ch = this.chars.next()
+      let ch = this.chars.next()
       //console.log(ch + ' ' + peer + ' ' + past)
       switch (ch) {
         case '(': return this.build(peer, past.push(peer))
