@@ -145,8 +145,8 @@ namespace iupac {
       return chains
     }
 
-    private linksPlain(sides: SideChains, cs: Carbon[]): any[] {
-      let links = []
+    private linksPlain(sides: SideChains, cs: Carbon[]): ChainLink[] {
+      let links: ChainLink[] = []
       cs.forEach((c, i) => {
         let chains = this.popChains(sides, c.id)
         chains.forEach(s => {
@@ -157,8 +157,8 @@ namespace iupac {
       return links
     }
 
-    private joinLinks(links: any[]): string[] {
-      let names: Array<string> = []
+    private joinLinks(links: ChainLink[]): string[] {
+      let names: string[] = []
       links.forEach(lnk => names.push(lnk[0] + '-' + lnk[1]))
       return names
     }
@@ -167,7 +167,7 @@ namespace iupac {
       return this.joinLinks(this.linksPlain(sides, cs))
     }
 
-    private makeName(names, len: number, suffix: string): string {
+    private makeName(names: string[], len: number, suffix: string): string {
       let name = Namer.normalize(names).join('-')
       name += Namer.numix(len) + suffix
       return name
