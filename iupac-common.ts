@@ -66,6 +66,70 @@ namespace iupac {
 
   //-----------------------------------------------------------------------------
 
+  export enum SmilesKind {
+    CARBON = 2,
+    BOPEN = 3, BCLOSE = 5,
+    UNKNOWN = 7
+  }
+
+  export class SmilesToken {
+    constructor(public kind: SmilesKind, public ch: string, public x: string = null) { }
+    load(kind: SmilesKind, ch: string, x: string = null): SmilesToken {
+      this.kind = kind
+      this.ch = ch
+      this.x = x
+      return this
+    }
+    private kindString(): string {
+      switch (this.kind) {
+        case SmilesKind.CARBON: return 'CORBON'
+        case SmilesKind.BOPEN: return '('
+        case SmilesKind.BCLOSE: return ')'
+        default: return ' '
+      }
+    }
+    toString(): string {
+      return '"' + this.ch + '" : ' + this.kindString() + (this.x !== null ? ' (' + this.x + ')' : '')
+    }
+  }
+
+  export class SmilesTokenizer {
+    private readonly LEN = 0
+    private token: SmilesToken = new SmilesToken(SmilesKind.UNKNOWN, null)
+    private n = 0
+    constructor(public smiles: string) {
+      this.LEN = smiles.length
+    }
+    private peek(): string {
+      if (this.n >= this.LEN) return null
+      return this.smiles.charAt(this.n)
+    }
+    private pop(): string {
+      if (this.n >= this.LEN) return null
+      let ch = this.smiles.charAt(this.n)
+      this.n++
+      return ch
+    }
+    private popLoad(kind: SmilesKind, ch: string, x?: string): SmilesToken {
+      this.pop()
+      return this.token.load(kind, ch, x)
+    }
+    public next(): SmilesToken {
+      let ch = this.pop()
+      if (ch === null) return null
+      switch (ch) {
+        case '(': return this.token.load(SmilesKind.BOPEN, ch)
+        case ')': return this.token.load(SmilesKind.BCLOSE, ch)
+        case 'C':
+          let ch1 = this.peek()
+          let match = /[1-9]/.test(ch1)
+          if (match) return this.popLoad(SmilesKind.CARBON, 'C' + ch1, ch1)
+          else return this.token.load(SmilesKind.CARBON, 'C')
+        default: return this.token.load(SmilesKind.UNKNOWN, ch)
+      }
+    }
+  }
+
   export class Namer {
     public static synonym(name: string): string {
       let syn = retained[name]
@@ -167,7 +231,7 @@ namespace iupac {
         sames.push(s)
       })
       newSubs.push(this.unify(sames))
-      console.log('norm: '+subs)
+      console.log('norm: ' + subs)
       return newSubs
     }
 

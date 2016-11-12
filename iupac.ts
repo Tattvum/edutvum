@@ -33,13 +33,15 @@ namespace iupac {
       return this.fixedDeg = this.bonds.length
     }
 
-    constructor(peer: Carbon) {
+    constructor(other: Carbon) {
       this.id = Carbon.all.length
       Carbon.all.push(this)
-      if (peer !== null) {
-        peer.bonds.push(this)
-        this.bonds.push(peer)
-      }
+      if (other !== null) this.bond(other)
+    }
+    public bond(other: Carbon) {
+      //console.log('bond: ' + this + ' - ' + other);
+      other.bonds.push(this)
+      this.bonds.push(other)
     }
     public equals(other: Carbon): boolean {
       return this.id === other.id
@@ -56,6 +58,20 @@ namespace iupac {
     }
     public toString(): string {
       return '' + this.id
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+
+  class ChainGlue {
+    private cache: { [key: string]: Carbon } = {}
+    public note(key: string, c: Carbon): ChainGlue {
+      if (key === null || key == undefined) return this
+      console.log('CG: C' + key + ' = ' + c);
+      let _c = this.cache[key]
+      if (_c === undefined || _c === null) this.cache[key] = c
+      else _c.bond(c)
+      return this
     }
   }
 
@@ -107,6 +123,7 @@ namespace iupac {
 
   type SideChains = { [id: number]: string[] }
   type ChainLink = [number, string]
+  type IUPACInfo = [string, number[]]
 
   class SemiPaths {
     private paths: SemiPath[] = []
@@ -195,6 +212,8 @@ namespace iupac {
     private mainAlive(sides: SideChains): Carbon[] {
       //TBD : ASSUME exactly two paths in filter 
       let alives = this.paths.filter(p => p.alive)
+      console.log('alives: ' + alives);
+      if (alives.length < 2) return null
       let a0 = alives[0].carbons()
       let a1 = alives[1].carbons()
       return a0.concat(a1.reverse().splice(1))
@@ -224,8 +243,8 @@ namespace iupac {
 
     private mainChain(sides: SideChains, main: Carbon[]) {
       let locs = this.locants(sides, main)
-      //console.log('main. ' + main);
-      let links = null
+      console.log('main. ' + main);
+      let links: any = null
       let loccomp = Namer.compareLocants(locs, main.length + 1)
       if (loccomp > 0) main = main.reverse()
       else if (loccomp === 0) {
@@ -237,13 +256,19 @@ namespace iupac {
       return links
     }
 
-    public iupac(): string {
+    public iupac(): IUPACInfo {
       let sides: { [id: number]: string[] } = {}
       this.buildSideChains(sides)
 
       let main = this.mainAlive(sides)
+      if (main === null) {
+        console.log('CHAIN AHOY!');
+        return ['CHAIN AHOY!', []]
+      }
       let names = this.joinLinks(this.mainChain(sides, main))
-      return this.makeName(names, main.length, 'ane')
+      let mainIds: number[] = []
+      main.forEach(c => mainIds.push(c.id))
+      return [this.makeName(names, main.length, 'ane'), mainIds]
     }
   }
 
@@ -251,44 +276,49 @@ namespace iupac {
 
   class Molecule {
     private chars: common.Chars
+    private tokens: SmilesTokenizer
     constructor(private smiles: string) {
       this.chars = new common.Chars(smiles)
+      this.tokens = new SmilesTokenizer(smiles)
     }
 
-    public iupac(): string {
+    public iupac(): IUPACInfo {
       Carbon.reset()
-      this.build(null, new common.Stack<Carbon>())
+      this.build(null, new common.Stack<Carbon>(), new ChainGlue())
+      //this.build(null, new common.Stack<Carbon>())
       Carbon.fixDegrees()
-      //Carbon.reveal()
+      Carbon.reveal()
       //console.log('----iupac----')
       let paths = new SemiPaths(Carbon.tips())
       paths.build()
-      //paths.reveal()
+      paths.reveal()
       return paths.iupac()
     }
 
-    private build(peer: Carbon, past: common.Stack<Carbon>): Carbon {
-      let ch = this.chars.next()
-      //console.log(ch + ' ' + peer + ' ' + past)
-      switch (ch) {
-        case '(': return this.build(peer, past.push(peer))
-        case ')': return this.build(past.pop(), past)
-        case 'C':
-        case 'c': return this.build(new Carbon(peer), past)
-        case null: return peer
-        default: return this.build(peer, past)
+    private build(peer: Carbon, past: common.Stack<Carbon>, cg: ChainGlue): Carbon {
+      let tok = this.tokens.next()
+      //console.log('build2: {' + tok + '} ' + peer + ' ' + past)
+      if (tok === null) return peer
+      switch (tok.kind) {
+        case SmilesKind.BOPEN: return this.build(peer, past.push(peer), cg)
+        case SmilesKind.BCLOSE: return this.build(past.pop(), past, cg)
+        case SmilesKind.CARBON:
+          let c = new Carbon(peer)
+          return this.build(c, past, cg.note(tok.x, c))
+        default: return this.build(peer, past, cg)
       }
     }
+
   }
 
   //-----------------------------------------------------------------------------
 
-  export function main(smiles: string): string {
+  export function main(smiles: string): IUPACInfo {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
     return m.iupac()
   }
 
-  console.log(main('CCC(CC(CC)CC)C'))
+  console.log(main('CCCC(CCC)C1CC1'))
 }
