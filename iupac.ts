@@ -1,29 +1,8 @@
 namespace iupac {
 
   class Carbon {
-    private static all: Carbon[] = []
-    static reset() {
-      Carbon.all = []
-      new Carbon(null)//dummy - to make it start from 1
-    }
-    static reveal() {
-      console.log('Carbons: [' + Carbon.all.join(',') + ']')
-      Carbon.all.forEach(c => {
-        console.log(c.id + ' - ' + c.bonds.length)
-      })
-      console.log(',,,,,,,,,,,')
-    }
-    static tips(): Carbon[] {
-      return Carbon.all.filter(c => c.bonds.length === 1)
-    }
-    static fixDegrees(): number {
-      let total = 0
-      Carbon.all.forEach(c => total += c.fixDegree())
-      return total
-    }
-
     readonly id: number
-    private bonds: Carbon[] = []
+    readonly bonds: Carbon[] = []
 
     private fixedDeg: number = 0
     public fixedDegree(): number {
@@ -33,10 +12,8 @@ namespace iupac {
       return this.fixedDeg = this.bonds.length
     }
 
-    constructor(other: Carbon) {
-      this.id = Carbon.all.length
-      Carbon.all.push(this)
-      if (other !== null) this.bond(other)
+    constructor(_id: number) {
+      this.id = _id
     }
     public bond(other: Carbon) {
       //console.log('bond: ' + this + ' - ' + other);
@@ -63,9 +40,9 @@ namespace iupac {
 
   //-----------------------------------------------------------------------------
 
-  class ChainGlue {
+  class ChainGluer {
     private cache: { [key: string]: Carbon } = {}
-    public note(key: string, c: Carbon): ChainGlue {
+    public note(key: string, c: Carbon): ChainGluer {
       if (key === null || key == undefined) return this
       console.log('CG: C' + key + ' = ' + c);
       let _c = this.cache[key]
@@ -275,40 +252,79 @@ namespace iupac {
   //-----------------------------------------------------------------------------
 
   class Molecule {
-    private chars: common.Chars
+    private all: Carbon[] = []
+    private reveal() {
+      console.log('Carbons: [' + this.all.join(',') + ']')
+      this.all.forEach(c => {
+        console.log(c.id + ' - ' + c.bonds.length)
+      })
+      console.log(',,,,,,,,,,,')
+    }
+    private tips(): Carbon[] {
+      return this.all.filter(c => c.bonds.length === 1)
+    }
+    private fixDegrees(): number {
+      let total = 0
+      this.all.forEach(c => total += c.fixDegree())
+      return total
+    }
+
+    private peer: Carbon = null
+    private past: common.Stack<Carbon> = new common.Stack<Carbon>()
+    private cg: ChainGluer = new ChainGluer()
+
     private tokens: SmilesTokenizer
+
+    private restart() {
+      this.all = []
+      this.all.push(new Carbon(null)) //dummy - to make it start from 1
+      this.tokens = new SmilesTokenizer(this.smiles)
+    }
     constructor(private smiles: string) {
-      this.chars = new common.Chars(smiles)
-      this.tokens = new SmilesTokenizer(smiles)
+      this.restart()
+    }
+
+    private open(): Molecule {
+      this.past.push(this.peer)
+      return this
+    }
+    private close(): Molecule {
+      this.peer = this.past.pop()
+      return this
+    }
+    private make(x: string): Molecule {
+      let c = new Carbon(this.all.length)
+      this.all.push(c)
+      if (this.peer !== null) c.bond(this.peer)
+
+      this.peer = c
+      this.cg.note(x, this.peer)
+      return this
+    }
+
+    private build() {
+      let tok = this.tokens.next()
+      //console.log('build2: {' + tok + '} ' + peer + ' ' + past)
+      if (tok === null) return
+      switch (tok.kind) {
+        case SmilesKind.BOPEN: this.open().build(); break
+        case SmilesKind.BCLOSE: this.close().build(); break
+        case SmilesKind.CARBON: this.make(tok.x).build(); break
+        default: this.build(); break
+      }
     }
 
     public iupac(): IUPACInfo {
-      Carbon.reset()
-      this.build(null, new common.Stack<Carbon>(), new ChainGlue())
-      //this.build(null, new common.Stack<Carbon>())
-      Carbon.fixDegrees()
-      Carbon.reveal()
+      this.restart()
+      this.build()
+      this.fixDegrees()
+      this.reveal()
       //console.log('----iupac----')
-      let paths = new SemiPaths(Carbon.tips())
+      let paths = new SemiPaths(this.tips())
       paths.build()
       paths.reveal()
       return paths.iupac()
     }
-
-    private build(peer: Carbon, past: common.Stack<Carbon>, cg: ChainGlue): Carbon {
-      let tok = this.tokens.next()
-      //console.log('build2: {' + tok + '} ' + peer + ' ' + past)
-      if (tok === null) return peer
-      switch (tok.kind) {
-        case SmilesKind.BOPEN: return this.build(peer, past.push(peer), cg)
-        case SmilesKind.BCLOSE: return this.build(past.pop(), past, cg)
-        case SmilesKind.CARBON:
-          let c = new Carbon(peer)
-          return this.build(c, past, cg.note(tok.x, c))
-        default: return this.build(peer, past, cg)
-      }
-    }
-
   }
 
   //-----------------------------------------------------------------------------
@@ -320,5 +336,7 @@ namespace iupac {
     return m.iupac()
   }
 
-  console.log(main('CCCC(CCC)C1CC1'))
+  //console.log(main('CCCC(CCC)C1CC1'))//chain
+  console.log(main('CCC(C)CC(CC)CC'))//plain
+
 }
