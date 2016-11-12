@@ -269,16 +269,17 @@ namespace iupac {
       return total
     }
 
-    private peer: Carbon = null
     private past: common.Stack<Carbon> = new common.Stack<Carbon>()
-    private cg: ChainGluer = new ChainGluer()
+    private cgluer: ChainGluer = new ChainGluer()
 
     private tokens: SmilesTokenizer
+    private peer: Carbon = null
 
     private restart() {
       this.all = []
       this.all.push(new Carbon(null)) //dummy - to make it start from 1
       this.tokens = new SmilesTokenizer(this.smiles)
+      this.peer = null
     }
     constructor(private smiles: string) {
       this.restart()
@@ -298,7 +299,7 @@ namespace iupac {
       if (this.peer !== null) c.bond(this.peer)
 
       this.peer = c
-      this.cg.note(x, this.peer)
+      this.cgluer.note(x, this.peer)
       return this
     }
 
@@ -307,10 +308,10 @@ namespace iupac {
       //console.log('build2: {' + tok + '} ' + peer + ' ' + past)
       if (tok === null) return
       switch (tok.kind) {
-        case SmilesKind.BOPEN: this.open().build(); break
-        case SmilesKind.BCLOSE: this.close().build(); break
-        case SmilesKind.CARBON: this.make(tok.x).build(); break
-        default: this.build(); break
+        case SmilesKind.BOPEN: return this.open().build()
+        case SmilesKind.BCLOSE: return this.close().build()
+        case SmilesKind.CARBON: return this.make(tok.x).build()
+        default: return this.build()
       }
     }
 
@@ -333,6 +334,8 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
+    m.iupac()
+    m.iupac()
     return m.iupac()
   }
 
