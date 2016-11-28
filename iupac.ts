@@ -334,12 +334,10 @@ namespace iupac {
     console.clear()
     console.log(smiles)
     let m = new Molecule(smiles)
-    m.iupac()
-    m.iupac()
     return m.iupac()
   }
 
-  //console.log(main('CCCC(CCC)C1CC1'))//chain
-  console.log(main('CCC(C)CC(CC)CC'))//plain
+  console.log(main('CCCC(CCC)C1CC1'))//chain
+  //console.log(main('CCC(C)CC(CC)CC'))//plain
 
 }
