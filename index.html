@@ -1,32 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
+  <title>Edutvum : SMILES-IUPAC 2</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!--<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">-->
   <link rel="stylesheet" href="styles.css">
-  <title>Edutvum : SMILES-IUPAC</title>
+
+  <!-- Polyfill(s) for older browsers -->
+  <script src="node_modules/core-js/client/shim.min.js"></script>
+
+  <script src="node_modules/zone.js/dist/zone.js"></script>
+  <script src="node_modules/reflect-metadata/Reflect.js"></script>
+  <script src="node_modules/systemjs/dist/system.src.js"></script>
+
+  <script src="systemjs.config.js"></script>
+  <script>
+      System.import('app').catch(function(err){ console.error(err); });
+    </script>
 </head>
 
 <body>
-
-  <p>
-    <h1 id='main'></h1>
-  </p>
   <div id="jsme_container"></div>
-  <br> smiles: <b><span  id="smiles_container" ></span></b>
-  <br>
-  <input onclick="toggle()" type="button" id="disp" value="Hide"></input>
-  <br> iupac: <b><span  id="iupac" ></span></b>
+  <my-app>Loading AppComponent content here ...</my-app>
 
-  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
-  <script src="node_modules/jquery/dist/jquery.min.js"></script>
   <script src="jsme/jsme.nocache.js"></script>
-  <script src="common.js"></script>
-  <script src="iupac-common.js"></script>
-  <script src="iupac.js"></script>
-  <script src="gui.js"></script>
+  <script>
+    function jsmeOnLoad() {
+      jsmeApplet = new JSApplet.JSME("jsme_container", "380px", "340px", {
+        "options": "nocanonize,autonumber"
+      });
+      jsmeApplet.setNotifyStructuralChangeJSfunction("show_smiles");
+    }
+    function show_smiles() {
+      let smiles = jsmeApplet.smiles(); //atom that are colored are numbered
+      window.ng2iupac(smiles)
+    }
+  </script>
 </body>
 
 </html>
