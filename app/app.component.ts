@@ -1,5 +1,5 @@
 import { Component, NgZone } from '@angular/core';
-import { main } from './iupac';
+import { IupacService } from './iupac/iupac.service';
 
 @Component({
   moduleId: module.id,
@@ -12,7 +12,7 @@ export class AppComponent {
   smiles = '-'
   iupac = '-'
 
-  constructor(private ngZone: NgZone) {
+  constructor(private ngZone: NgZone, private service: IupacService) {
     window.ng2iupac = this.ng2iupac.bind(this)
   }
 
@@ -26,7 +26,7 @@ export class AppComponent {
     this.ngZone.run(() => {
       this.smiles = _smiles
       console.log('ng2iupac called')
-      this.iupac = main(_smiles)[0]
+      this.iupac = this.service.iupac(_smiles)
     });
   }
 

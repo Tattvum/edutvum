@@ -337,7 +337,3 @@ export function main(smiles: string): IUPACInfo {
   let m = new Molecule(smiles)
   return m.iupac()
 }
-
-console.log(main('CCCC(CCC)C1CC1'))//chain
-  //console.log(main('CCC(C)CC(CC)CC'))//plain
-
